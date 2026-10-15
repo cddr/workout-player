@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Basic timer</title>
+</head>
+<body>
+<main style="font-family: system-ui, sans-serif; max-width: 480px; margin: 40px auto;">
+  <h1>Basic timer</h1>
+  <p>A short routine, run by the timer. Its events are written to the page; the cues are shown as text.</p>
+  <button id="start">Start</button>
+  <p><strong id="state">Ready</strong></p>
+  <p style="font-size: 3rem; font-variant-numeric: tabular-nums;" id="count">–</p>
+  <p id="upNext"></p>
+  <p id="cue"></p>
+  <ol id="log"></ol>
+</main>
+
+<script type="module">
+  import { createTimer } from "../../src/index.js";
+
+  // A routine in the same shape the library reads: exercises in order, with
+  // durations and rests in seconds. Audio is left out, so cues show as text.
+  const routine = {
+    getReadyTime: 3,
+    countdownBeep: 3,
+    workout: [
+      { id: "squat", name: "Squat", duration: 5, rest: 3 },
+      { id: "plank", name: "Plank", duration: 5, rest: 3 },
+      { id: "step", name: "Step up", duration: 5, rest: 3 },
+    ],
+  };
+
+  const el = (id) => document.getElementById(id);
+  const log = el("log");
+
+  el("start").addEventListener("click", () => {
+    const timer = createTimer(routine);
+
+    timer.on("step", (step) => {
+      el("state").textContent = step.state;
+      el("upNext").textContent = step.upNext;
+      log.append(Object.assign(document.createElement("li"), { textContent: `Started ${step.state}` }));
+    });
+    timer.on("tick", ({ remaining }) => {
+      el("count").textContent = remaining;
+    });
+    timer.on("cue", (cue) => {
+      // A site would play the clip here. This example shows what would be said.
+      el("cue").textContent = cue.src ? `Would play ${cue.src}` : `Would say ${cue.count}`;
+    });
+    timer.on("exerciseComplete", ({ exercise }) => {
+      log.append(Object.assign(document.createElement("li"), { textContent: `Finished ${exercise}` }));
+    });
+    timer.on("finish", () => {
+      el("state").textContent = "Done";
+      el("count").textContent = "–";
+      el("upNext").textContent = "";
+    });
+
+    timer.start();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Single figure</title>
+</head>
+<body>
+<main style="font-family: system-ui, sans-serif; max-width: 480px; margin: 40px auto; text-align: center;">
+  <h1>Single figure</h1>
+  <p>One exercise's figure, moving between two poses. The renderer works out each frame and draws it as SVG.</p>
+  <svg id="figure" viewBox="0 0 200 200" width="240" height="240" fill="none" stroke="currentColor"
+       stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></svg>
+</main>
+
+<script type="module">
+  import { figureFrame, figureParts } from "../../src/index.js";
+
+  // A figure: two poses, a and b, that the renderer moves between. Each joint is
+  // [x, y, z] in a 200 by 200 box. Turns and offsets are left out.
+  const figure = {
+    a: {
+      head: [100, 40, 0], sh: [100, 70, 0], hip: [100, 120, 0],
+      el: [70, 90, 0], wr: [60, 110, 0], ha: [60, 110, 0],
+      kn: [90, 160, 0], an: [88, 190, 0], kn2: [110, 160, 0], an2: [112, 190, 0],
+    },
+    b: {
+      head: [100, 40, 0], sh: [100, 70, 0], hip: [100, 120, 0],
+      el: [70, 50, 0], wr: [85, 30, 0], ha: [85, 30, 0],
+      kn: [90, 160, 0], an: [88, 190, 0], kn2: [110, 160, 0], an2: [112, 190, 0],
+    },
+  };
+
+  const svg = document.getElementById("figure");
+  const start = performance.now();
+  const frame = (now) => {
+    const { pose, yaw } = figureFrame(figure, now - start, now);
+    svg.innerHTML = figureParts(pose, yaw);
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>

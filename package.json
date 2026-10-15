@@ -1,0 +1,22 @@
+{
+  "name": "@cddr/workout-player",
+  "version": "0.1.0",
+  "description": "Plays a workout routine: a timer, stick-figure renderer and content loader",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test test/timer.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
