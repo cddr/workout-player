@@ -116,20 +116,27 @@ test("skip ends the current exercise early, reports it as skipped, and moves to 
   assert.equal(steps.at(-1).state, "REST");
 });
 
-test("skip does nothing during get ready or a rest", () => {
+test("skip does nothing during get ready", () => {
   const clock = fakeClock();
   const timer = createTimer(routine, { clock });
   const events = record(timer);
   timer.start();
-  timer.skip(); // get ready
-  assert.equal(events.filter((e) => e.type === "exerciseSkipped").length, 0);
-  assert.equal(events.filter((e) => e.type === "step").at(-1).state, "GET READY");
-  clock.advance(1); // exercise A
-  clock.advance(4); // rest
-  const before = events.length;
   timer.skip();
   assert.equal(events.filter((e) => e.type === "exerciseSkipped").length, 0);
-  assert.equal(events.length, before, "nothing happens during a rest");
+  assert.equal(events.filter((e) => e.type === "step").at(-1).state, "GET READY");
+});
+
+test("skip ends a rest early and starts the next exercise, without reporting it as skipped", () => {
+  const clock = fakeClock();
+  const timer = createTimer(routine, { clock });
+  const events = record(timer);
+  timer.start();
+  clock.advance(1); // exercise A
+  clock.advance(4); // A ends -> rest
+  assert.equal(events.filter((e) => e.type === "step").at(-1).state, "REST");
+  timer.skip();
+  assert.equal(events.filter((e) => e.type === "step").at(-1).state, "B");
+  assert.equal(events.filter((e) => e.type === "exerciseSkipped").length, 0);
 });
 
 test("skipping the last exercise finishes the workout", () => {

@@ -24,8 +24,8 @@ timer.start();
 
 - **`createTimer(routine, options?)`** returns `{ segments, on, start, pause, resume, skip, stop }`.
   `on(event, fn)` subscribes and returns a function that unsubscribes. `skip()` ends the current
-  exercise early, emits `exerciseSkipped`, and moves on to its rest. It does nothing during get
-  ready or a rest. The events are `step`, `tick`, `cue`, `exerciseComplete`, `exerciseSkipped`
+  exercise or rest early and moves on to the next step. Skipping an exercise also emits
+  `exerciseSkipped`. It does nothing during get ready. The events are `step`, `tick`, `cue`, `exerciseComplete`, `exerciseSkipped`
   and `finish`, documented in `src/timer.js`.
 - **`createLoader({ contentBase, contentHeaders })`** returns `loadRoutineList`, `loadRoutine`,
   `fetchJson`, `contentUrl` and `headers`. `contentHeaders()` can return headers for every

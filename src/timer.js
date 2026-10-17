@@ -118,12 +118,12 @@ export function createTimer(routine, { tickMs = 1000, clock = globalThis } = {})
     enter();
   }
 
-  // Ends the current exercise early and moves on to its rest, or the next step. Only an exercise
-  // can be skipped: during the get-ready step or a rest this does nothing, and so does a stopped timer.
+  // Ends the current exercise or rest early and moves on to the next step. An exercise also emits
+  // exerciseSkipped. Nothing happens during the get-ready step (the first step), or when the timer isn't running.
   function skip() {
     const s = segments[index];
-    if (!active || !s.exercise) return;
-    emit("exerciseSkipped", { exercise: s.exercise });
+    if (!active || index === 0) return;
+    if (s.exercise) emit("exerciseSkipped", { exercise: s.exercise });
     nextStep();
   }
 
