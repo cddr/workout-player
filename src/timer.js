@@ -7,6 +7,7 @@
 //   tick              once a second, and when a step starts: { remaining }
 //   cue               something to say: { src } for a clip, or { count } for a countdown number
 //   exerciseComplete  an exercise has finished: { exercise }
+//   exerciseSkipped   an exercise was skipped before it finished: { exercise }
 //   finish            the last step has finished
 
 import { cuePaths } from "./content.js";
@@ -103,6 +104,11 @@ export function createTimer(routine, { tickMs = 1000, clock = globalThis } = {})
       return;
     }
     if (s.exercise) emit("exerciseComplete", { exercise: s.exercise });
+    nextStep();
+  }
+
+  // Moves to the next step, or finishes after the last one
+  function nextStep() {
     index++;
     if (index >= segments.length) {
       stop();
@@ -110,6 +116,15 @@ export function createTimer(routine, { tickMs = 1000, clock = globalThis } = {})
       return;
     }
     enter();
+  }
+
+  // Ends the current exercise early and moves on to its rest, or the next step. Only an exercise
+  // can be skipped: during the get-ready step or a rest this does nothing, and so does a stopped timer.
+  function skip() {
+    const s = segments[index];
+    if (!active || !s.exercise) return;
+    emit("exerciseSkipped", { exercise: s.exercise });
+    nextStep();
   }
 
   function start() {
@@ -135,5 +150,5 @@ export function createTimer(routine, { tickMs = 1000, clock = globalThis } = {})
     active = false;
   }
 
-  return { segments, on, start, pause, resume, stop };
+  return { segments, on, start, pause, resume, skip, stop };
 }
