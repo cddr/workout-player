@@ -116,14 +116,14 @@ test("skip ends the current exercise early, reports it as skipped, and moves to 
   assert.equal(steps.at(-1).state, "REST");
 });
 
-test("skip does nothing during get ready", () => {
+test("skip ends get ready early and starts the first exercise, without reporting it as skipped", () => {
   const clock = fakeClock();
   const timer = createTimer(routine, { clock });
   const events = record(timer);
   timer.start();
   timer.skip();
+  assert.equal(events.filter((e) => e.type === "step").at(-1).state, "A");
   assert.equal(events.filter((e) => e.type === "exerciseSkipped").length, 0);
-  assert.equal(events.filter((e) => e.type === "step").at(-1).state, "GET READY");
 });
 
 test("skip ends a rest early and starts the next exercise, without reporting it as skipped", () => {
