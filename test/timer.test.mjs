@@ -27,7 +27,7 @@ const routine = {
 
 function record(timer) {
   const events = [];
-  for (const type of ["step", "tick", "cue", "exerciseComplete", "finish"]) {
+  for (const type of ["step", "tick", "cue", "exerciseComplete", "exerciseSkipped", "finish"]) {
     timer.on(type, (detail) => events.push({ type, ...detail }));
   }
   return events;
@@ -100,4 +100,55 @@ test("pause stops the clock and resume starts it again", () => {
   assert.equal(events.length, before, "nothing happens while paused");
   timer.resume();
   assert.equal(clock.running, true);
+});
+
+test("skip ends the current exercise early, reports it as skipped, and moves to its rest", () => {
+  const clock = fakeClock();
+  const timer = createTimer(routine, { clock });
+  const events = record(timer);
+  timer.start();
+  clock.advance(1); // get ready is over, so exercise A starts
+  timer.skip();
+  const skipped = events.filter((e) => e.type === "exerciseSkipped");
+  assert.deepEqual(skipped.map((e) => e.exercise), ["a"]);
+  assert.equal(events.some((e) => e.type === "exerciseComplete"), false, "a skip is not a completion");
+  const steps = events.filter((e) => e.type === "step");
+  assert.equal(steps.at(-1).state, "REST");
+});
+
+test("skip does nothing during get ready or a rest", () => {
+  const clock = fakeClock();
+  const timer = createTimer(routine, { clock });
+  const events = record(timer);
+  timer.start();
+  timer.skip(); // get ready
+  assert.equal(events.filter((e) => e.type === "exerciseSkipped").length, 0);
+  assert.equal(events.filter((e) => e.type === "step").at(-1).state, "GET READY");
+  clock.advance(1); // exercise A
+  clock.advance(4); // rest
+  const before = events.length;
+  timer.skip();
+  assert.equal(events.filter((e) => e.type === "exerciseSkipped").length, 0);
+  assert.equal(events.length, before, "nothing happens during a rest");
+});
+
+test("skipping the last exercise finishes the workout", () => {
+  const clock = fakeClock();
+  const timer = createTimer(routine, { clock });
+  const events = record(timer);
+  timer.start();
+  clock.advance(1); // get ready -> A
+  clock.advance(5); // A ends -> rest -> B starts
+  assert.equal(events.filter((e) => e.type === "step").at(-1).state, "B");
+  timer.skip();
+  assert.deepEqual(events.filter((e) => e.type === "exerciseSkipped").map((e) => e.exercise), ["b"]);
+  assert.equal(events.at(-1).type, "finish");
+  assert.equal(clock.running, false);
+});
+
+test("skip does nothing before the timer starts", () => {
+  const timer = createTimer(routine, { clock: fakeClock() });
+  const events = record(timer);
+  timer.skip();
+  assert.equal(events.length, 0);
 });
